@@ -36,12 +36,9 @@ int main()
         running = 0;
         continue;
       }
-      if (strcmp(input,"") == 0) {
-        continue;
-      }
       add_history(input);
       args = split_line(input);       //Remember to free args !!!
-      if (strcmp(args[0],":")== 0) {
+      if (args[0] != NULL && strcmp(args[0],":")== 0) {
         start_external(args);         //frees args :-)
       }else{
         start_git(args);              //frees args :-)
