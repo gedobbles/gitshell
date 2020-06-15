@@ -1,0 +1,2 @@
+% :: %.c
+	gcc -o $@ $< -lreadline
