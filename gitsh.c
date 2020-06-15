@@ -9,6 +9,10 @@
 #define TOK_BUFSIZE 64
 #define TOK_DELIM " \t\r\n\a"
 
+#define MAX_HISTORY 128
+#define HISTORY_FILE "/.gitsh"
+#define HISTORY_FILE_CHRS 8   //make sure this is correct! (len+1 for \0)
+
 //#define DBG 1   //comment out to switch DBG-output off
 
 int    start_proc(char**);
@@ -30,6 +34,28 @@ int main()
     printf("gitsh by gedobbles\nHit Enter for help.\n" \
            "Use a colon seperated by a space for external commands.\n\n");
 
+    char* home = getenv("HOME");
+    int homelen = 0;
+    while (home[homelen] != 0) {
+      homelen++;
+    }
+    homelen++;
+    homelen += HISTORY_FILE_CHRS;
+    char* histfile = (char*)malloc(homelen*sizeof(char));
+    histfile[0] = 0;
+    strcat(histfile, home);
+    strcat(histfile, HISTORY_FILE);
+
+    int res = read_history(histfile);
+    if (res == 2) {
+      char* touch = "touch";
+      char ** a = malloc(sizeof(touch)*3);
+      a[0] = touch;
+      a[1] = histfile;
+      a[2] = NULL;
+      start_proc(a);
+    }
+
     while (running) {
       input = readline("(git) > ");
       if (strcmp(input,"exit") == 0) {
@@ -37,6 +63,7 @@ int main()
         continue;
       }
       add_history(input);
+      stifle_history(MAX_HISTORY);
       args = split_line(input);       //Remember to free args !!!
       if (args[0] != NULL && strcmp(args[0],":")== 0) {
         start_external(args);         //frees args :-)
@@ -44,6 +71,9 @@ int main()
         start_git(args);              //frees args :-)
       }
     }
+
+    write_history(histfile);
+    free(histfile);
     return 0;
 }
 
