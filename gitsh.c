@@ -13,6 +13,10 @@
 
 int    start_proc(char**);
 int    start_git(char**);
+int    start_external(char**);
+
+int    arr_elements(char**);
+
 char** split_line(char*);
 
 char* git = "git";
@@ -23,24 +27,47 @@ int main()
     char** args;
     int running = 1;
 
-    printf("gitsh by gedobbles\nHit Enter for help.\n\n");
+    printf("gitsh by gedobbles\nHit Enter for help.\n" \
+           "Use a colon seperated by a space for external commands.\n\n");
 
     while (running) {
       input = readline("(git) > ");
-      if (strcmp(input,"exit")==0) {
+      if (strcmp(input,"exit") == 0) {
         running = 0;
         continue;
       }
+      if (strcmp(input,"") == 0) {
+        continue;
+      }
       add_history(input);
-      start_git(split_line(input));
+      args = split_line(input);       //Remember to free args !!!
+      if (strcmp(args[0],":")== 0) {
+        start_external(args);         //frees args :-)
+      }else{
+        start_git(args);              //frees args :-)
+      }
     }
     return 0;
 }
 
 
+int start_external(char** args)
+{
+  int elements = arr_elements(args);
+  char** cmd = (char**)malloc((elements + 1)*sizeof(char*));
+
+  cmd[elements] = NULL;
+  for (int i = 0; i < elements; i++) {    //Strip off colon
+    cmd[i] = args[i+1];
+  }
+  free(args);
+  start_proc(cmd);
+  free(cmd);
+}
+
 int start_git(char** args)
 {
-  int elements = sizeof(args) / sizeof(char*);
+  int elements = arr_elements(args);
   char** cmd = (char**)malloc((elements + 2)*sizeof(char*));
 
   cmd[0] = git;
@@ -62,7 +89,7 @@ int start_proc(char **args)
   if (pid == 0) {
     // Child process
 #ifdef DBG
-    printf("%s %s\n", args[0], args[1]);
+    printf("%s %s %s\n", args[0], args[1], args[2]);
 #endif
     if (execvp(args[0], args) == -1) {
       perror("Error starting process");
@@ -111,4 +138,13 @@ char** split_line(char *line)
   }
   tokens[position] = NULL;
   return tokens;
+}
+
+int arr_elements(char** args)
+{
+  int e = 0;
+  while (args[e] != NULL) {
+    e++;
+  }
+  return e++;
 }
