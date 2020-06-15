@@ -70,6 +70,7 @@ int main()
       }else{
         start_git(args);              //frees args :-)
       }
+      free(input);
     }
 
     write_history(histfile);
