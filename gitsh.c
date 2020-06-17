@@ -18,7 +18,7 @@
 /*
     Features to add:
      - history should be project dependant                            ✓
-     - allow the colon for external cmds to be not seperated
+     - allow the colon for external cmds to be not seperated          ✓
      - add cd
      - add better completion:
        * git command completion
@@ -64,7 +64,7 @@ int main()
     int external = 0;   //Flag for external command
 
     printf("gitsh by gedobbles\nHit Enter for help.\n" \
-           "Use a colon seperated by a space for external commands.\n\n");
+           "Use a preceding colon for external commands.\n\n");
 
     init();   //Read history file if existing, else create
 
@@ -77,9 +77,14 @@ int main()
       add_history(input);
       stifle_history(MAX_HISTORY);
 
+      external = 0;
+      if (input[0] == ':') {
+        input[0] = ' ';
+        external ++;
+      }
 
       args = split_line(input);       //Remember to free args !!!
-      if (args[0] != NULL && strcmp(args[0],":")== 0) {
+      if (external != 0) {
         start_external(args);         //frees args :-)
       }else{
         start_git(args);              //frees args :-)
@@ -99,8 +104,8 @@ int start_external(char** args)
   char** cmd = (char**)malloc((elements + 1)*sizeof(char*));
 
   cmd[elements] = NULL;
-  for (int i = 0; i < elements; i++) {    //Strip off colon
-    cmd[i] = args[i+1];
+  for (int i = 0; i < elements; i++) {
+    cmd[i] = args[i];
   }
   free(args);
   start_proc(cmd);
