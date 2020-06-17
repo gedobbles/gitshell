@@ -34,6 +34,8 @@ int main()
     printf("gitsh by gedobbles\nHit Enter for help.\n" \
            "Use a colon seperated by a space for external commands.\n\n");
 
+    //TODO allow colon to be not seperated
+
     char* home = getenv("HOME");
     int homelen = 0;
     while (home[homelen] != 0) {
@@ -54,6 +56,7 @@ int main()
       a[1] = histfile;
       a[2] = NULL;
       start_proc(a);
+      free(a);
     }
 
     while (running) {
