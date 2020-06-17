@@ -19,7 +19,7 @@
     Features to add:
      - history should be project dependant                            ✓
      - allow the colon for external cmds to be not seperated          ✓
-     - add cd
+     - add cd                                                         ✓
      - add better completion:
        * git command completion
           ~ branch: branches
@@ -42,7 +42,7 @@
 
 */
 
-void   init();
+void   init(int);
 
 int    start_proc(char**);
 int    start_git(char**);
@@ -52,8 +52,9 @@ int    arr_elements(char**);
 
 char** split_line(char*);
 
-
+// constants
 char* git = "git";
+
 char* histfile;   //name of the history file
 
 int main()
@@ -63,20 +64,25 @@ int main()
     int running = 1;
     int external = 0;   //Flag for external command
 
-    printf("gitsh by gedobbles\nHit Enter for help.\n" \
+    printf("gitsh by gedobbles\ncd to change directory\n" \
+           "cdp to switch to new history context\nHit Enter for git help.\n" \
            "Use a preceding colon for external commands.\n\n");
 
-    init();   //Read history file if existing, else create
+    init(0);   //Read history file if existing, else create
 
     while (running) {
       input = readline("(git) > ");
+
+      //check for exit
       if (strcmp(input,"exit") == 0) {
         running = 0;
         continue;
       }
+
       add_history(input);
       stifle_history(MAX_HISTORY);
 
+      //check for external command (':')
       external = 0;
       if (input[0] == ':') {
         input[0] = ' ';
@@ -84,6 +90,22 @@ int main()
       }
 
       args = split_line(input);       //Remember to free args !!!
+
+      //check for internals
+      if (args[0] != NULL && strcmp(args[0], "cd") == 0) {
+        chdir(args[1]);
+        free(args);                   //frees args :-)
+        continue;
+      }
+
+      if (args[0] != NULL && strcmp(args[0], "cdp") == 0) {
+        if (chdir(args[1]) == 0) {
+          init(1);
+        }
+        free(args);                   //frees args :-)
+        continue;
+      }
+
       if (external != 0) {
         start_external(args);         //frees args :-)
       }else{
@@ -198,7 +220,7 @@ int arr_elements(char** args)
 }
 
 
-void init() {
+void init(int reinit) {
   char* dir = getcwd(NULL, 0);
   int dirlen = 0;
   while (dir[dirlen] != 0) {
@@ -206,6 +228,11 @@ void init() {
   }
   dirlen++;
   dirlen += HISTORY_FILE_CHRS;
+  if (reinit) {
+    write_history(histfile);
+    clear_history();
+    free(histfile);
+  }
   histfile = (char*)malloc(dirlen*sizeof(char));
   histfile[0] = 0;
   strcat(histfile, dir);
