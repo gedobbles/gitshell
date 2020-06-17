@@ -1,6 +1,9 @@
 #executable
 gitsh
 
+#gitsh history
+.gitsh
+
 # Prerequisites
 *.d
 

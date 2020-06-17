@@ -15,6 +15,35 @@
 
 //#define DBG 1   //comment out to switch DBG-output off
 
+/*
+    Features to add:
+     - history should be project dependant                            ✓
+     - allow the colon for external cmds to be not seperated
+     - add cd
+     - add better completion:
+       * git command completion
+          ~ branch: branches
+          ~ checkout: branches
+          ~ config: (some) variables
+          ~ fetch: remotes
+          ~ help
+          ~ log: branches
+          ~ merge: branches
+          ~ pull: remotes
+          ~ push: remotes
+          ~ rebase: branches
+          ~ remote:
+             # add get-url prune remove rename set-branches
+             # set-head set-url show update
+          ~ reset: branches
+          ~ show: branches
+
+       * after ':' program name completion on first level
+
+*/
+
+void   init();
+
 int    start_proc(char**);
 int    start_git(char**);
 int    start_external(char**);
@@ -23,41 +52,21 @@ int    arr_elements(char**);
 
 char** split_line(char*);
 
+
 char* git = "git";
+char* histfile;   //name of the history file
 
 int main()
 {
     char* input;
     char** args;
     int running = 1;
+    int external = 0;   //Flag for external command
 
     printf("gitsh by gedobbles\nHit Enter for help.\n" \
            "Use a colon seperated by a space for external commands.\n\n");
 
-    //TODO allow colon to be not seperated
-
-    char* home = getenv("HOME");
-    int homelen = 0;
-    while (home[homelen] != 0) {
-      homelen++;
-    }
-    homelen++;
-    homelen += HISTORY_FILE_CHRS;
-    char* histfile = (char*)malloc(homelen*sizeof(char));
-    histfile[0] = 0;
-    strcat(histfile, home);
-    strcat(histfile, HISTORY_FILE);
-
-    int res = read_history(histfile);
-    if (res == 2) {
-      char* touch = "touch";
-      char ** a = malloc(sizeof(touch)*3);
-      a[0] = touch;
-      a[1] = histfile;
-      a[2] = NULL;
-      start_proc(a);
-      free(a);
-    }
+    init();   //Read history file if existing, else create
 
     while (running) {
       input = readline("(git) > ");
@@ -67,6 +76,8 @@ int main()
       }
       add_history(input);
       stifle_history(MAX_HISTORY);
+
+
       args = split_line(input);       //Remember to free args !!!
       if (args[0] != NULL && strcmp(args[0],":")== 0) {
         start_external(args);         //frees args :-)
@@ -171,6 +182,7 @@ char** split_line(char *line)
   return tokens;
 }
 
+
 int arr_elements(char** args)
 {
   int e = 0;
@@ -178,4 +190,31 @@ int arr_elements(char** args)
     e++;
   }
   return e++;
+}
+
+
+void init() {
+  char* dir = getcwd(NULL, 0);
+  int dirlen = 0;
+  while (dir[dirlen] != 0) {
+    dirlen++;
+  }
+  dirlen++;
+  dirlen += HISTORY_FILE_CHRS;
+  histfile = (char*)malloc(dirlen*sizeof(char));
+  histfile[0] = 0;
+  strcat(histfile, dir);
+  strcat(histfile, HISTORY_FILE);
+  free(dir);
+
+  int res = read_history(histfile);
+  if (res == 2) {
+    char* touch = "touch";
+    char ** a = malloc(sizeof(touch)*3);
+    a[0] = touch;
+    a[1] = histfile;
+    a[2] = NULL;
+    start_proc(a);
+    free(a);
+  }
 }
