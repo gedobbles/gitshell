@@ -13,6 +13,10 @@ char* gitsh_cmds_arr[] = {"add", "checkout", "difftool", "imap-send", "notes",
                       NULL
                       };
 
+char* gitsh_remote_arr[] = {"add", "get-url", "prune", "remove", "rename",
+                            "set-branches", "set-head", "set-url", "show update"
+                           };
+
 char* gitsh_configs_arr[] = {"add.ignoreErrors", "core.bigFileThreshold",
 "gc.logExpiry", "mergetool.keepBackup", "advice.amWorkDir", "core.checkStat",
 "gc.packrefs", "mergetool.keepTemporaries", "advice.commitBeforeMerge",

@@ -36,8 +36,8 @@
           ~ push: remotes
           ~ rebase: branches
           ~ remote:
-             # add get-url prune remove rename set-branches
-             # set-head set-url show update
+             # add get-url prune remove rename set-branches           ✓
+             # set-head set-url show update                           ✓
           ~ reset: branches
           ~ show: branches
 
@@ -71,6 +71,7 @@ char* histfile;   //name of the history file
 #include "completions.h"
 char** gitsh_cmds;
 char** gitsh_configs;
+char** gitsh_remote;
 char** gitsh_ext_cmds;
 char** branches;
 
@@ -312,6 +313,8 @@ void initialize_readline()
 {
   gitsh_cmds = gitsh_cmds_arr;
   gitsh_configs = gitsh_configs_arr;
+  gitsh_remote = gitsh_remote_arr;
+
   //gitsh_ext_cmds
   char* bash    = "bash";
   char* _c      = "-c";
@@ -347,6 +350,10 @@ char** gitsh_completion (const char* text, int start, int end)
     char* so_far = rl_line_buffer;
     if (strncmp(so_far, "config ", 7) == 0) {
       completion_set = &gitsh_configs;
+      matches = rl_completion_matches(text, completion_generator);
+    }
+    if (strncmp(so_far, "remote ", 7) == 0) {
+      completion_set = &gitsh_remote;
       matches = rl_completion_matches(text, completion_generator);
     }
   }
