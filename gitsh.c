@@ -93,7 +93,8 @@ int main()
 
     printf("gitsh by gedobbles\ncd to change directory\n" \
            "cdp to switch to new history context\nHit Enter for git help.\n" \
-           "Use a preceding colon for external commands.\n\n");
+           "Use a preceding colon for external commands.\n" \
+           "Always escape spaces in parameters or filenames!\n\n");
 
     init(0);   //Read history file if existing, else create
     initialize_readline();
@@ -208,6 +209,17 @@ int start_proc(char **args)
 
 char** split_line(char *line)
 {
+  //escaped spaces to '\\\1'
+  char* ptr = line;
+  ptr++;
+  while (*ptr) {
+    if (*ptr == ' ' && *(ptr-1) == '\\') {
+      *ptr = 1;
+    }
+    ptr++;
+  }
+
+
   int bufsize = TOK_BUFSIZE, position = 0;
   char **tokens = malloc(bufsize * sizeof(char*));
   char *token;
@@ -219,6 +231,15 @@ char** split_line(char *line)
 
   token = strtok(line, TOK_DELIM);
   while (token != NULL) {
+    //rereplace '\1' with ' '
+    ptr = token;
+    while (*ptr) {
+      if (*ptr == 1) {
+        *ptr = ' ';
+      }
+      ptr++;
+    }
+
     tokens[position] = token;
     position++;
 
