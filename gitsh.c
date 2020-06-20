@@ -102,7 +102,7 @@ int main()
       input = readline("(git) > ");
 
       //check for exit
-      if (strcmp(input,"exit") == 0) {
+      if (strncmp(input,"exit",4) == 0) {
         running = 0;
         continue;
       }
