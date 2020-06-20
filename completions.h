@@ -1,4 +1,4 @@
-char* gitsh_cmds[] = {"add", "checkout", "difftool", "imap-send", "notes",
+char* gitsh_cmds_arr[] = {"add", "checkout", "difftool", "imap-send", "notes",
                       "reset", "submodule", "am", "cherry", "fetch", "init",
                       "pull", "revert", "subtree", "annotate", "cherry-pick",
                       "filter-branch","instaweb", "push", "rm", "tag", "apply",
@@ -13,7 +13,7 @@ char* gitsh_cmds[] = {"add", "checkout", "difftool", "imap-send", "notes",
                       NULL
                       };
 
-char* gitsh_configs[] = {"add.ignoreErrors", "core.bigFileThreshold",
+char* gitsh_configs_arr[] = {"add.ignoreErrors", "core.bigFileThreshold",
 "gc.logExpiry", "mergetool.keepBackup", "advice.amWorkDir", "core.checkStat",
 "gc.packrefs", "mergetool.keepTemporaries", "advice.commitBeforeMerge",
 "core.commentChar", "gc.pruneexpire", "mergetool.prompt", "advice.detachedHead",

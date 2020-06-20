@@ -57,11 +57,9 @@ char** split_line(char*);
 
 //readline completion
 void initialize_readline();
-int getExtCmds();
+int getCompletions(char***, char***);
 
-char* command_generator(const char *, int);
-char* config_generator(const char *, int);
-char* ext_command_generator(const char *, int);
+char* completion_generator(const char *, int);
 char** gitsh_completion(const char *, int, int);
 char* dupstr(char*);
 
@@ -71,7 +69,12 @@ char* git = "git";
 char* histfile;   //name of the history file
 
 #include "completions.h"
-char** ext_cmds;
+char** gitsh_cmds;
+char** gitsh_configs;
+char** gitsh_ext_cmds;
+char** branches;
+
+char*** completion_set;
 
 int main()
 {
@@ -307,15 +310,24 @@ void init(int reinit)
    on filenames if not. */
 void initialize_readline()
 {
-  getExtCmds();
+  gitsh_cmds = gitsh_cmds_arr;
+  gitsh_configs = gitsh_configs_arr;
+  //gitsh_ext_cmds
+  char* bash    = "bash";
+  char* _c      = "-c";
+  char* compgen = "compgen -c";
+  char** command = (char**)malloc(sizeof(char*)*5);
+  command[0] = bash;
+  command[1] = _c;
+  command[2] = compgen;
+  command[3] = _c;
+  command[4] = NULL;
+  getCompletions(&gitsh_ext_cmds, &command);
+  free(command);
   rl_attempted_completion_function = gitsh_completion;
 }
 
-/* Attempt to complete on the contents of TEXT.  START and END
-   bound the region of rl_line_buffer that contains the word to
-   complete.  TEXT is the word to complete.  We can use the entire
-   contents of rl_line_buffer in case we want to do some simple
-   parsing.  Returnthe array of matches, or NULL if there aren't any. */
+
 char** gitsh_completion (const char* text, int start, int end)
 {
   char **matches;
@@ -326,23 +338,25 @@ char** gitsh_completion (const char* text, int start, int end)
      directory. */
   if (start == 0) {
     if (*text == ':') {
-      matches = rl_completion_matches(text, ext_command_generator);
+      completion_set = &gitsh_ext_cmds;
     }else{
-      matches = rl_completion_matches(text, command_generator);
+      completion_set = &gitsh_cmds;
     }
+    matches = rl_completion_matches(text, completion_generator);
   }else{
     char* so_far = rl_line_buffer;
     if (strncmp(so_far, "config ", 7) == 0) {
-      matches = rl_completion_matches(text, config_generator);
+      completion_set = &gitsh_configs;
+      matches = rl_completion_matches(text, completion_generator);
     }
   }
-
   //filename completion if we return NULL
   return (matches);
 }
 
-// generator for gitsh commands
-char* command_generator(const char* text, int state)
+// generator for completions
+// @param char*** completion_set
+char* completion_generator(const char* text, int state)
 {
   static int i, len;
   char *cmd;
@@ -354,68 +368,16 @@ char* command_generator(const char* text, int state)
       len = strlen (text);
     }
 
-  while (cmd = gitsh_cmds[i])
+  while (cmd = (*completion_set)[i])
     {
       i++;
       if (strncmp (cmd, text, len) == 0) {
         return (dupstr(cmd));
       }
     }
-
   return ((char *)NULL);
 }
 
-char* config_generator(const char* text, int state)
-{
-  static int i, len;
-  char *cmd;
-
-  // If this is a new word to complete, initialize now.
-  if (!state)
-    {
-      i = 0;
-      len = strlen (text);
-    }
-
-  while (cmd = gitsh_configs[i])
-    {
-      i++;
-      if (strncmp (cmd, text, len) == 0) {
-        return (dupstr(cmd));
-      }
-    }
-
-  return ((char *)NULL);
-}
-
-//generator for external commands
-char* ext_command_generator(const char* text, int state)
-{
-  static int i, len;
-  char *cmd;
-
-  /* If this is a new word to complete, initialize now.  This
-     includes saving the length of TEXT for efficiency, and
-     initializing the index variable to 0. */
-  if (!state)
-    {
-      i = 0;
-      len = strlen (text);
-    }
-
-  /* Return the next name which partially matches from the
-     command list. */
-  while (cmd = ext_cmds[i])
-    {
-      i++;
-      if (strncmp (cmd, text, len) == 0) {
-        return (dupstr(cmd));
-      }
-    }
-
-  /* If no names matched, then return NULL. */
-  return ((char *)NULL);
-}
 
 char* dupstr(char* s)
 {
@@ -426,7 +388,7 @@ char* dupstr(char* s)
   return (r);
 }
 
-int getExtCmds()
+int getCompletions(char*** result, char*** program)
 {
   int aStdinPipe[2];
   int aStdoutPipe[2];
@@ -469,17 +431,7 @@ int getExtCmds()
     close(aStdoutPipe[PIPE_READ]);
     close(aStdoutPipe[PIPE_WRITE]);
 
-    // run "bash -c""
-    char* bash    = "bash";
-    char* _c      = "-c";
-    char* compgen = "compgen -c";
-    char** command = (char**)malloc(sizeof(char*)*5);
-    command[0] = bash;
-    command[1] = _c;
-    command[2] = compgen;
-    command[3] = _c;
-    command[4] = NULL;
-    childResult = execvp(command[0], command);
+    childResult = execvp(*program[0], *program);
 
     // if we get here at all, an error occurred, but we are in the child
     // process, so just exit
@@ -522,10 +474,10 @@ int getExtCmds()
     temp[temp_i] = 0;
     cmd_temp[cmd_i] = dupstr(temp);
 
-    ext_cmds = (char**)malloc(sizeof(char*)*(cmd_i+1));
+    *result = (char**)malloc(sizeof(char*)*(cmd_i+1));
     for (int i = 0; i < (cmd_i+1); i++) {
-      ext_cmds[i] = cmd_temp[i];
-      //printf("%s\n", ext_cmds[i]);  //debug
+      (*result)[i] = cmd_temp[i];
+      //printf("%s\n", gitsh_ext_cmds[i]);  //debug
     }
 
 
