@@ -60,6 +60,7 @@ void initialize_readline();
 int getExtCmds();
 
 char* command_generator(const char *, int);
+char* config_generator(const char *, int);
 char* ext_command_generator(const char *, int);
 char** gitsh_completion(const char *, int, int);
 char* dupstr(char*);
@@ -69,19 +70,7 @@ char* git = "git";
 
 char* histfile;   //name of the history file
 
-char* gitsh_cmds[] = {"add", "checkout", "difftool", "imap-send", "notes",
-                      "reset", "submodule", "am", "cherry", "fetch", "init",
-                      "pull", "revert", "subtree", "annotate", "cherry-pick",
-                      "filter-branch","instaweb", "push", "rm", "tag", "apply",
-                      "clean", "format-patch", "interpret-trailers", "rebase",
-                      "shortlog", "verify-commit", "archive", "clone", "fsck",
-                      "log", "reflog", "show", "whatchanged", "bisect",
-                      "commit", "gc", "merge", "remote", "show-branch",
-                      "worktree", "blame", "config", "get-tar-commit-id",
-                      "mergetool", "repack", "stage", "branch", "describe",
-                      "grep", "mv", "replace", "stash", "bundle", "diff",
-                      "help", "name-rev", "request-pull", "status", "exit"    };
-
+#include "completions.h"
 char** ext_cmds;
 
 int main()
@@ -341,6 +330,11 @@ char** gitsh_completion (const char* text, int start, int end)
     }else{
       matches = rl_completion_matches(text, command_generator);
     }
+  }else{
+    char* so_far = rl_line_buffer;
+    if (strncmp(so_far, "config ", 7) == 0) {
+      matches = rl_completion_matches(text, config_generator);
+    }
   }
 
   //filename completion if we return NULL
@@ -353,17 +347,13 @@ char* command_generator(const char* text, int state)
   static int i, len;
   char *cmd;
 
-  /* If this is a new word to complete, initialize now.  This
-     includes saving the length of TEXT for efficiency, and
-     initializing the index variable to 0. */
+  // If this is a new word to complete, initialize now.
   if (!state)
     {
       i = 0;
       len = strlen (text);
     }
 
-  /* Return the next name which partially matches from the
-     command list. */
   while (cmd = gitsh_cmds[i])
     {
       i++;
@@ -372,7 +362,29 @@ char* command_generator(const char* text, int state)
       }
     }
 
-  /* If no names matched, then return NULL. */
+  return ((char *)NULL);
+}
+
+char* config_generator(const char* text, int state)
+{
+  static int i, len;
+  char *cmd;
+
+  // If this is a new word to complete, initialize now.
+  if (!state)
+    {
+      i = 0;
+      len = strlen (text);
+    }
+
+  while (cmd = gitsh_configs[i])
+    {
+      i++;
+      if (strncmp (cmd, text, len) == 0) {
+        return (dupstr(cmd));
+      }
+    }
+
   return ((char *)NULL);
 }
 
