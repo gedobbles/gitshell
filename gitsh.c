@@ -484,7 +484,7 @@ int getExtCmds()
     ext_cmds = (char**)malloc(sizeof(char*)*(cmd_i+1));
     for (int i = 0; i < (cmd_i+1); i++) {
       ext_cmds[i] = cmd_temp[i];
-      printf("%s\n", ext_cmds[i]);
+      //printf("%s\n", ext_cmds[i]);  //debug
     }
 
 
