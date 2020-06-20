@@ -209,16 +209,24 @@ int start_proc(char **args)
 
 char** split_line(char *line)
 {
-  //escaped spaces to '\\\1'
+  //escaped spaces to 1
   char* ptr = line;
+  char* temp = dupstr(line);
+  char* tptr = temp;
   ptr++;
-  while (*ptr) {
-    if (*ptr == ' ' && *(ptr-1) == '\\') {
+  tptr++;
+  while (*tptr) {
+    if (*tptr == '\\' && *(tptr+1) == ' ') {
       *ptr = 1;
+      tptr++;
+    }else{
+      *ptr = *tptr;
     }
     ptr++;
+    tptr++;
   }
-
+  *ptr = 0;
+  free(temp);
 
   int bufsize = TOK_BUFSIZE, position = 0;
   char **tokens = malloc(bufsize * sizeof(char*));
