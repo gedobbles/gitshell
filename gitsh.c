@@ -58,6 +58,7 @@ char** split_line(char*);
 //readline completion
 void initialize_readline();
 int getCompletions(char***, char***);
+void getBranches();
 
 char* completion_generator(const char *, int);
 char** gitsh_completion(const char *, int, int);
@@ -73,7 +74,7 @@ char** gitsh_cmds;
 char** gitsh_configs;
 char** gitsh_remote;
 char** gitsh_ext_cmds;
-char** branches;
+char** gitsh_branches;
 
 char*** completion_set;
 
@@ -327,6 +328,7 @@ void initialize_readline()
   command[4] = NULL;
   getCompletions(&gitsh_ext_cmds, &command);
   free(command);
+  //set completion function
   rl_attempted_completion_function = gitsh_completion;
 }
 
@@ -354,6 +356,17 @@ char** gitsh_completion (const char* text, int start, int end)
     }
     if (strncmp(so_far, "remote ", 7) == 0) {
       completion_set = &gitsh_remote;
+      matches = rl_completion_matches(text, completion_generator);
+    }
+    if (strncmp(so_far, "branch ", 7) == 0 || \
+        strncmp(so_far, "checkout ", 9) == 0 || \
+        strncmp(so_far, "log ", 4) == 0 || \
+        strncmp(so_far, "merge ", 6) == 0 || \
+        strncmp(so_far, "rebase ", 7) == 0 || \
+        strncmp(so_far, "reset ", 6) == 0 || \
+        strncmp(so_far, "show ", 5) == 0          ) {
+      getBranches();
+      completion_set = &gitsh_branches;
       matches = rl_completion_matches(text, completion_generator);
     }
   }
@@ -393,6 +406,43 @@ char* dupstr(char* s)
   r = (char*) malloc (strlen (s) + 1);
   strcpy (r, s);
   return (r);
+}
+
+
+void getBranches()
+{
+  char* git     = "git";
+  char* branch  = "branch";
+  char* _a      = "-a";
+  char* _no_col = "--no-color";
+  char** command = (char**)malloc(sizeof(char*)*5);
+  command[0] = git;
+  command[1] = branch;
+  command[2] = _a;
+  command[3] = _no_col;
+  command[4] = NULL;
+  getCompletions(&gitsh_branches, &command);
+  free(command);
+  char** aptr = gitsh_branches;
+  char* ptr;
+  char* tptr;
+  while (*aptr != NULL) {
+    ptr = *aptr;
+    tptr = ptr;
+    ptr+=3; //leading : spaces / *
+    while (*ptr) {
+      if (*ptr == ' ') {
+        *tptr = 0;
+        break;
+      }
+      *tptr = *ptr;
+      ptr++;
+      tptr++;
+    }
+    *tptr = 0;
+    //printf("%s\n", *aptr);    //DBG
+    aptr++;
+  }
 }
 
 int getCompletions(char*** result, char*** program)
@@ -482,10 +532,12 @@ int getCompletions(char*** result, char*** program)
     cmd_temp[cmd_i] = dupstr(temp);
 
     *result = (char**)malloc(sizeof(char*)*(cmd_i+1));
-    for (int i = 0; i < (cmd_i+1); i++) {
+    int i;
+    for (i = 0; i < (cmd_i); i++) {
       (*result)[i] = cmd_temp[i];
-      //printf("%s\n", gitsh_ext_cmds[i]);  //debug
+      //printf("%s\n", (*result)[i]);  //debug
     }
+    (*result)[i] = NULL;
 
 
   } else {
