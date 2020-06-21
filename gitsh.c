@@ -349,26 +349,30 @@ char** gitsh_completion (const char* text, int start, int end)
     }
     matches = rl_completion_matches(text, completion_generator);
   }else{
-    char* so_far = rl_line_buffer;
-    if (strncmp(so_far, "config ", 7) == 0) {
+    char* so_far = dupstr(rl_line_buffer);
+
+    if (strncmp(so_far, "config ", 7) == 0 && start == 7) {
       completion_set = &gitsh_configs;
       matches = rl_completion_matches(text, completion_generator);
     }
-    if (strncmp(so_far, "remote ", 7) == 0) {
+    if (strncmp(so_far, "remote ", 7) == 0 && start == 7) {
       completion_set = &gitsh_remote;
       matches = rl_completion_matches(text, completion_generator);
     }
-    if (strncmp(so_far, "branch ", 7) == 0 || \
-        strncmp(so_far, "checkout ", 9) == 0 || \
-        strncmp(so_far, "log ", 4) == 0 || \
-        strncmp(so_far, "merge ", 6) == 0 || \
-        strncmp(so_far, "rebase ", 7) == 0 || \
-        strncmp(so_far, "reset ", 6) == 0 || \
-        strncmp(so_far, "show ", 5) == 0          ) {
+    if ((strncmp(so_far, "branch ",         7)  == 0 && start ==  7) || \
+        (strncmp(so_far, "checkout ",       9)  == 0 && start ==  9) || \
+        (strncmp(so_far, "log ",            4)  == 0 && start ==  4) || \
+        (strncmp(so_far, "merge ",          6)  == 0 && start ==  6) || \
+        (strncmp(so_far, "rebase ",         7)  == 0 && start ==  7) || \
+        (strncmp(so_far, "reset ",          6)  == 0 && start ==  6) || \
+        (strncmp(so_far, "show-branch ",   12)  == 0 && start == 12) || \
+        (strncmp(so_far, "show ",           5)  == 0 && start ==  5)        ) {
       getBranches();
       completion_set = &gitsh_branches;
       matches = rl_completion_matches(text, completion_generator);
     }
+
+    free(so_far);
   }
   //filename completion if we return NULL
   return (matches);
