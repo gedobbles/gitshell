@@ -1,6 +1,17 @@
 # gitshell
 A helper program for more efficient shell git use.
 
+As I saw that there have been, according to the statistics, already 42 unique
+people who cloned this repository, I want to take this as an invitation, to leave
+a short message to those:
+
+If you like my implementation of a git shell, don't hesitate to tell others and me.
+I do really appreciate any feedback.
+And furthermore, if you have *any* suggestions, ideas, questions or concerns
+regarding it's future development, please leave a note in form of an issue.
+
+Thank you.
+
 ## How to install
 A simple `make install` compiles and installs **gitshell** to `/usr/local/bin/gitsh`.
 For it depends on the readline library, you have to have `libreadline-dev` or similar installed on your system.
