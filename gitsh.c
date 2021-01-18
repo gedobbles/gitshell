@@ -425,8 +425,14 @@ void getBranches()
   command[2] = _a;
   command[3] = _no_col;
   command[4] = NULL;
+#ifdef DBG
+    printf("getting branches...\n");
+#endif
   getCompletions(&gitsh_branches, &command);
   free(command);
+#ifdef DBG
+    printf("got branches!\n");
+#endif
   char** aptr = gitsh_branches;
   char* ptr;
   char* tptr;
@@ -444,7 +450,9 @@ void getBranches()
       tptr++;
     }
     *tptr = 0;
-    //printf("%s\n", *aptr);    //DBG
+#ifdef DBG
+    printf("%s\n", *aptr);
+#endif
     aptr++;
   }
 }
@@ -509,7 +517,7 @@ int getCompletions(char*** result, char*** program)
 
 
     char c;
-    char temp[50];
+    char temp[200]; //crucial for max len of branch names
     int temp_i = 0;
     int cmd_i = 0;
     char* cmd_temp[5000];
@@ -535,14 +543,21 @@ int getCompletions(char*** result, char*** program)
     temp[temp_i] = 0;
     cmd_temp[cmd_i] = dupstr(temp);
 
+#ifdef DBG
+    printf("allocating space... (%d) \n", cmd_i+1);
+#endif
     *result = (char**)malloc(sizeof(char*)*(cmd_i+1));
     int i;
     for (i = 0; i < (cmd_i); i++) {
       (*result)[i] = cmd_temp[i];
-      //printf("%s\n", (*result)[i]);  //debug
+#ifdef DBG
+      printf("%d: %s\n", i, (*result)[i]);
+#endif
     }
     (*result)[i] = NULL;
-
+#ifdef DBG
+      printf("%d: NULL\n", i);
+#endif
 
   } else {
     // failed to create child
